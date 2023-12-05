@@ -16,5 +16,6 @@ private:
 
 public:
   void init();
+  void reset();
   long getValue();
 };
