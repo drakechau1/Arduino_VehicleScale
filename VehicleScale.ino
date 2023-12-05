@@ -1,7 +1,11 @@
+// #define DISABLE_LOGGING
+#include "Custom_HX711.h"
+#include "ArduinoLog.h"
+
 void setup() {
-  // put your setup code here, to run once:
+  const Custom_HX711 loadcell;
+  loadcell.init();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
 }
