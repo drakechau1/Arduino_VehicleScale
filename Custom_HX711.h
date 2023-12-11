@@ -9,8 +9,10 @@
 #define LOADCELL_SCK_PIN 3
 
 // Adjustment settings
-#define LOADCELL_OFFSET 50682624
-#define LOADCELL_DIVIDER 5895655
+#define LOADCELL_OFFSET 100
+#define LOADCELL_DIVIDER -110.31941
+
+#define WAIT_READY_TIMEOUT 500
 
 class Custom_HX711 : public HX711 {
 public:
