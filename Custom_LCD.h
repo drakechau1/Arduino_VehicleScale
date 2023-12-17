@@ -1,12 +1,14 @@
 #pragma once
 #include "LiquidCrystal_I2C.h"
+#include "Custom_Keypad.h"
 
 enum LCD_DISPLAY_MODE {
-  Normal,
+  Welcome,
   Motobike,
   Car,
   Overload,
-  Setting
+  Setting,
+  Exist
 };
 
 class Custom_LCD : public LiquidCrystal_I2C {
@@ -16,7 +18,7 @@ public:
   void initLCD();
 
   void printBitmap(const unsigned char* bitmap, int x, int y);
-  void printNormal();
+  void printWelcome();
   void printMotobike(long weight);
   void printCar(long weight);
   void printOverload(long weight);
@@ -26,13 +28,17 @@ public:
   void test();
 
   void setCurrentDisplayMode(LCD_DISPLAY_MODE mode);
+  LCD_DISPLAY_MODE getCurrentDisplayMode();
   void setCurrentDisplayModeByWeight(long weight);
 
 private:
-  LCD_DISPLAY_MODE currentDisplayMode = LCD_DISPLAY_MODE::Normal;
+  LCD_DISPLAY_MODE currentDisplayMode = LCD_DISPLAY_MODE::Welcome;
   LCD_DISPLAY_MODE previousDisplayMode = -1;
 
   void updatePreviousMode();
   bool isChangedMode();
   void printSetting_Layout();
+  void printSetting_Motobike();
+  void printSetting_Car();
+  // void printSetting_Overload();
 };

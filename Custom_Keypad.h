@@ -25,3 +25,5 @@ public:
 
   void test();
 };
+
+extern Custom_Keypad keypad;
