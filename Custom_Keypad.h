@@ -6,6 +6,11 @@
 #define ROWS 4  //four rows
 #define COLS 4  //four columns
 
+enum Key_t {
+  EXIST = '#',
+  OK = '*'
+};
+
 class Custom_Keypad : public Keypad {
 private:
   //define the cymbols on the buttons of the keypads
