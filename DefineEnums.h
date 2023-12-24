@@ -1,19 +1,24 @@
 #pragma once
 
-enum Mode_t {
+// the minimun of motobike threshold
+#define LOWER_THRESHOLD_MOTO 3  // unit
+
+#define MAX_SCALE_VALUE 20000  // kg
+
+enum class Mode_t {
   SCALE,
   SETTING
 };
 
-enum Setting_State_t {
-  SETTING_MOTOBIKE,
-  SETTING_CAR,
-  SETTING_OVERLOAD
+enum State_t {
+  INIT,
+  WELCOME,
+  MOTOBIKE,
+  CAR,
+  OVERLOAD
 };
 
-enum Scale_Display_t {
-  SCALE_WELCOME,
-  SCALE_MOTOBIKE,
-  SCALE_CAR,
-  SCALE_OVERLOAD
+enum class Func_Key_t {
+  SETTING = '#',
+  SAVE = '*'
 };

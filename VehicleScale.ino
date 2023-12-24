@@ -1,4 +1,4 @@
-#define DISABLE_LOGGING
+// #define DISABLE_LOGGING
 // #define ENABLE_TEST
 #include "ArduinoLog.h"
 #include "Configuration.h"
@@ -11,6 +11,108 @@ Custom_LCD lcd(0x27, 20, 4);
 Custom_HX711 scale;
 Custom_Keypad keypad;
 Configuration configure;
+
+Mode_t mode = Mode_t::SCALE;
+int state = WELCOME;  // initialize state value
+
+void turnOnLed() {
+  digitalWrite(A0, HIGH);
+  delay(200);
+  digitalWrite(A0, LOW);
+  delay(200);
+  digitalWrite(A0, HIGH);
+}
+
+void turnOffLed() {
+  digitalWrite(A0, LOW);
+}
+
+void settingMode() {
+  mode = Mode_t::SETTING;
+  state = MOTOBIKE;
+
+  while (Mode_t::SETTING == mode) {
+    lcd.setDisplayState(state);
+    lcd.displaySetting();
+
+    int weight = 0;
+    char enteredKey = keypad.getKey();
+
+    while ('*' != enteredKey) {
+      enteredKey = keypad.getKey();
+      // ascii: '0' -> 48, '9' -> 57
+      if (enteredKey >= '0' && enteredKey <= '9' || enteredKey == 'D') {
+        if (enteredKey == 'D') {
+          weight = 0;
+        } else {
+          weight = int(weight * 10 + (int)(enteredKey - 48));            // Concat chars to int
+          weight = weight > MAX_SCALE_VALUE ? MAX_SCALE_VALUE : weight;  // Constrains value with max value is MAX_SCALE_VALUE (20000kg)
+        }
+
+        lcd.setCursor(14, 3);
+        lcd.print("     ");  // erases last value display
+        lcd.setCursor(14, 3);
+        lcd.print(weight);
+
+        Log.infoln("new weight = %d", weight);
+      } else if (enteredKey == '#') {  // exist setting mode
+        mode = Mode_t::SCALE;
+        return;  // exit setting mode
+      }
+    }
+
+    if (OVERLOAD == state
+        && '*' == enteredKey) {
+      mode = Mode_t::SCALE;
+      return;  // exit setting mode
+    }
+
+    // Update weight thresholds
+    switch (state) {
+      case MOTOBIKE:
+        if (weight > 0)
+          configure.setMotoThreshold(weight);
+        state = CAR;
+        break;
+      case CAR:
+        if (weight > 0)
+          configure.setCarThreshold(weight);
+        state = OVERLOAD;
+        break;
+    }
+  }
+}
+
+void scaleMode() {
+  int weight = scale.getWeight();
+  Log.infoln("Weight: %d", weight);
+
+  if (lcd.getDisplayState() != state) {
+    // LED controll
+    if (state != WELCOME && state != INIT) {
+      turnOnLed();
+    } else {
+      turnOffLed();
+    }
+    // LCD controll
+    lcd.clear();
+    lcd.setDisplayState(state);
+  }
+
+  if (weight < LOWER_THRESHOLD_MOTO) {
+    state = WELCOME;
+    lcd.printScale_Welcome();
+  } else if (weight < configure.getMotoThreshold()) {
+    state = MOTOBIKE;
+    lcd.printScale_Motobike(weight);
+  } else if (weight < configure.getCarThreshold()) {
+    state = CAR;
+    lcd.printScale_Car(weight);
+  } else {  // Overload
+    state = OVERLOAD;
+    lcd.printScale_Overload(weight);
+  }
+}
 
 void setup() {
   // Set up serial port and wait until connected
@@ -47,74 +149,11 @@ void loop() {
 
   char settingKey = keypad.getKey();
 
-  // Setting key -> Setting mode
-  if (settingKey == '#') {
-    Log.infoln("SETTING MODE");
-
-    configure.setMode(Mode_t::SETTING);
-    configure.setSettingState(Setting_State_t::SETTING_MOTOBIKE);
-    lcd.setDisplayState(LCD_Display_State_t::Setting_Motobike);
-    lcd.setMode(LCD_Mode_t::Setting);
-    // setting configure
-    while (configure.getMode() == Mode_t::SETTING) {
-      lcd.displaySetting();
-
-      int weight = 0;
-      char enteredKey = keypad.getKey();
-
-      while (enteredKey != '*') {  // OK key
-        enteredKey = keypad.getKey();
-
-        // ascii: '0' -> 48, '9' -> 57
-        if (enteredKey >= '0' && enteredKey <= '9') {
-          weight = int(weight * 10 + (int)(enteredKey - 48));            // Concat chars to int
-          weight = weight > MAX_SCALE_VALUE ? MAX_SCALE_VALUE : weight;  // Constrains value with max value is MAX_SCALE_VALUE (20000kg)
-          Log.infoln("weight = %d", weight);
-        } else if (enteredKey == '#') {  // exist setting mode
-          configure.setMode(Mode_t::SCALE);
-          lcd.setMode(LCD_Mode_t::Scale);
-          break;
-        }
-      }
-
-      Setting_State_t curSettingState = configure.getSettingState();
-
-      if (Setting_State_t::SETTING_OVERLOAD == curSettingState
-          && '*' == enteredKey) {
-        lcd.setMode(LCD_Mode_t::Scale);
-        configure.setMode(Mode_t::SCALE);
-        break;  // break while(configure.getCurrentMode() == Mode_t::SETTING)
-      }
-
-      // Update weight thresholds
-      switch (curSettingState) {
-        case Setting_State_t::SETTING_MOTOBIKE:
-          configure.setMotoThreshold(weight);
-          lcd.setDisplayState(LCD_Display_State_t::Setting_Car);
-          break;
-        case Setting_State_t::SETTING_CAR:
-          lcd.setDisplayState(LCD_Display_State_t::Setting_Overload);
-          configure.setCarThreshold(weight);
-          break;
-      }
-
-      configure.nextSettingState();
-    }
-  } else {  // Scale mode
-            // Log.infoln("SCALE MODE");
-    int weight = scale.getWeight();
-    Log.infoln("Weight: %d", weight);
-    lcd.displayWeight(weight);
-    // LED controll
-    if (weight > configure.getCarThreshold()) {
-      digitalWrite(A0, HIGH);
-      delay(500);
-      digitalWrite(A0, LOW);
-      delay(500);
-      digitalWrite(A0, HIGH);
-    } else {
-      digitalWrite(A0, LOW);
-    }
+  // Setting mode
+  if ('#' == settingKey) {
+    settingMode();
+  } else {
+    scaleMode();
   }
 
 

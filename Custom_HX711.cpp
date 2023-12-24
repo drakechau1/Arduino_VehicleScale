@@ -11,7 +11,7 @@ void Custom_HX711::reset() {
   if (wait_ready_timeout(WAIT_READY_TIMEOUT)) {
     set_scale(LOADCELL_DIVIDER);
     tare();
-    Log.infoln("Tare done...");
+    Log.infoln("Tare scale done...");
   } else {
     Log.infoln("HX711 not found.");
   }
