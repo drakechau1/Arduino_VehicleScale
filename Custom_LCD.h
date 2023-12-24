@@ -17,6 +17,7 @@ enum LCD_Display_State_t {
   Setting_Motobike,  // first state of setting
   Setting_Car,
   Setting_Overload,  // end state of setting
+  State_None
 };
 
 class Custom_LCD : public LiquidCrystal_I2C {
@@ -38,12 +39,13 @@ public:
 
 private:
   LCD_Mode_t mode[2] = { LCD_Mode_t::None, LCD_Mode_t::Scale };  // [0] pre mode, [1] cur mode
-  LCD_Display_State_t displayState = LCD_Display_State_t::Scale_Welcome;
+  LCD_Display_State_t displayState[2] = { LCD_Display_State_t::State_None, LCD_Display_State_t::Scale_Welcome };
 
 protected:
   bool isChangedMode();
+  bool isChangedState();
 
-  void printBitmap(const unsigned char* bitmap, int x, int y);
+  void printBitmap(const char* bitmap, int x, int y);
 
   void printWelcome();
   void printMotobike(int weight);

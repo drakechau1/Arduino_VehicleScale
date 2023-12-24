@@ -18,7 +18,7 @@ class Custom_HX711 : public HX711 {
 public:
   void init();
   void reset();
-  long getWeight();
+  int getWeight();
 
   void test();
 };

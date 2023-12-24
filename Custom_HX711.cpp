@@ -17,10 +17,10 @@ void Custom_HX711::reset() {
   }
 }
 
-long Custom_HX711::getWeight() {
+int Custom_HX711::getWeight() {
   if (wait_ready_timeout(WAIT_READY_TIMEOUT)) {
     delay(50);
-    return (long)get_units(10);
+    return (int)get_units(10);
   } else {
     Log.infoln("HX711 not found.");
   }

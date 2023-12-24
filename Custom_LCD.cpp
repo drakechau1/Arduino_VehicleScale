@@ -1,3 +1,4 @@
+#include "ArduinoLog.h"
 #include "Custom_LCD.h"
 
 extern Configuration configure;
@@ -24,6 +25,14 @@ bool Custom_LCD::isChangedMode() {
   return true;
 }
 
+bool Custom_LCD::isChangedState() {
+  if (displayState[0] == displayState[1]) {
+    return false;
+  }
+  displayState[0] = displayState[1];  // update previousdisplayState
+  return true;
+}
+
 /**
 *
 * Setters, Getters
@@ -34,7 +43,7 @@ void Custom_LCD::setDisplayStateByWeight(int weight) {
     setDisplayState(LCD_Display_State_t::Scale_Welcome);
   } else if (weight < configure.getMotoThreshold()) {
     setDisplayState(LCD_Display_State_t::Scale_Motobike);
-  } else if (weight < 200) {
+  } else if (weight < configure.getCarThreshold()) {
     setDisplayState(LCD_Display_State_t::Scale_Car);
   } else {
     setDisplayState(LCD_Display_State_t::Scale_Overload);
@@ -42,7 +51,7 @@ void Custom_LCD::setDisplayStateByWeight(int weight) {
 }
 
 void Custom_LCD::setDisplayState(LCD_Display_State_t state) {
-  displayState = state;
+  displayState[1] = state;
 }
 
 void Custom_LCD::setMode(LCD_Mode_t mode) {
@@ -50,7 +59,7 @@ void Custom_LCD::setMode(LCD_Mode_t mode) {
 }
 
 LCD_Display_State_t Custom_LCD::getDisplayState() {
-  return displayState;
+  return displayState[0];
 }
 
 LCD_Mode_t Custom_LCD::getMode() {
@@ -67,20 +76,20 @@ void Custom_LCD::printSetting_Layout() {
   print("CAI DAT");
 
   setCursor(0, 2);
-  print("*  OK");
+  print("* Luu");
 
   setCursor(0, 3);
   print("# Thoat");
 
-  // unsigned char I[] = { 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04 };
-  unsigned char I[] = { 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01 };
+  //  char I[] = { 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04 };
+  char I[] = { 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01 };
   createChar(0, I);
   for (int i = 0; i < 4; i++) {
     setCursor(7, i);
     write(0);
   }
 
-  switch (displayState) {
+  switch (displayState[1]) {
     case LCD_Display_State_t::Setting_Motobike:
       printSetting_Motobike();
       break;
@@ -99,13 +108,11 @@ void Custom_LCD::printSetting_Motobike() {
 
   setCursor(9, 2);
   print("Min");
+  setCursor(9, 3);
+  print(3);
 
   setCursor(16, 2);
   print("Max");
-
-  setCursor(9, 3);
-  print(50);
-
   setCursor(16, 3);
   print(configure.getMotoThreshold());
 }
@@ -144,9 +151,25 @@ void Custom_LCD::printSetting_Overload() {
 }
 
 void Custom_LCD::displaySetting() {
-  if (isChangedMode()) {
+  // if (isChangedMode()) {
+  //   clear();
+  //   printSetting_Layout();
+  // }
+
+  if (isChangedState()) {
     clear();
     printSetting_Layout();
+    switch (displayState[1]) {
+      case LCD_Display_State_t::Setting_Motobike:
+        printSetting_Motobike();
+        break;
+      case LCD_Display_State_t::Setting_Car:
+        printSetting_Car();
+        break;
+      case LCD_Display_State_t::Setting_Overload:
+        printSetting_Overload();
+        break;
+    }
   }
 }
 
@@ -155,11 +178,11 @@ void Custom_LCD::displaySetting() {
 * Scale mode display
 *
 **/
-void Custom_LCD::printBitmap(const unsigned char* bitmap, int x, int y) {
+void Custom_LCD::printBitmap(const char* bitmap, int x, int y) {
 }
 
 void Custom_LCD::printWelcome() {
-  if (isChangedMode()) {
+  if (isChangedState()) {
     clear();
     setCursor(0, 0);
     print("CAN TU DONG");
@@ -167,7 +190,7 @@ void Custom_LCD::printWelcome() {
 }
 
 void Custom_LCD::printMotobike(int weight) {
-  if (isChangedMode()) {
+  if (isChangedState()) {
     clear();
     setCursor(0, 0);
     print("XE MAY");
@@ -179,7 +202,7 @@ void Custom_LCD::printMotobike(int weight) {
 }
 
 void Custom_LCD::printCar(int weight) {
-  if (isChangedMode()) {
+  if (isChangedState()) {
     clear();
     setCursor(0, 0);
     print("XE OTO");
@@ -191,7 +214,7 @@ void Custom_LCD::printCar(int weight) {
 }
 
 void Custom_LCD::printOverload(int weight) {
-  if (!isChangedMode()) {
+  if (isChangedState()) {
     clear();
     setCursor(0, 0);
     print("QUA TAI");
@@ -204,9 +227,7 @@ void Custom_LCD::printOverload(int weight) {
 
 void Custom_LCD::displayWeight(int weight) {
   setDisplayStateByWeight(weight);
-
-  switch (displayState) {
-    default:
+  switch (displayState[1]) {
     case LCD_Display_State_t::Scale_Welcome:
       printWelcome();
       break;
