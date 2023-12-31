@@ -1,5 +1,7 @@
+#include "WString.h"
 #include "ArduinoLog.h"
 #include "Custom_LCD.h"
+#include "define_bitmap.h"
 
 extern Configuration configure;
 
@@ -34,6 +36,13 @@ int Custom_LCD::getDisplayState() {
   return displayState[1];
 }
 
+int Custom_LCD::getCenterX(int length) {
+  if (length > 0) {
+    return (20 - length) / 2;
+  }
+  return 0;
+}
+
 /**
 * Setting mode display
 **/
@@ -53,15 +62,16 @@ void Custom_LCD::printSetting_Layout() {
     write(0);
   }
 
-  setCursor(9, 2);
+  setCursor(DISPLAY_MINMAX_X, DISPLAY_MIN_Y);
   print("Min:");
 
   byte rightArrow[] = { 0x00, 0x04, 0x02, 0x1F, 0x1F, 0x02, 0x04, 0x00 };
 
+  setCursor(DISPLAY_MINMAX_X, DISPLAY_MAX_Y);
+  print("Max:");
   createChar(1, rightArrow);
   setCursor(8, 3);
   write(1);
-  print("Max:");
 }
 
 void Custom_LCD::printSetting_Motobike() {
@@ -77,7 +87,7 @@ void Custom_LCD::printSetting_Motobike() {
 
 void Custom_LCD::printSetting_Car() {
   setCursor(9, 0);
-  print("Xe oto (kg)");
+  print("OTO (kg)");
 
   setCursor(14, 2);
   print(configure.getMotoThreshold());
@@ -121,51 +131,111 @@ void Custom_LCD::displaySetting() {
 /**
 * Scale mode display
 **/
-void Custom_LCD::printBitmap(const char* bitmap, int x, int y) {
+void Custom_LCD::printBitmap(int x, int y) {
+  setCursor(x + 0, y + 0);
+  print(char(0));
+  setCursor(x + 1, y + 0);
+  print(char(1));
+  setCursor(x + 2, y + 0);
+  print(char(2));
+  setCursor(x + 3, y + 0);
+  print(char(3));
+
+  setCursor(x + 0, y + 1);
+  print(char(4));
+  setCursor(x + 1, y + 1);
+  print(char(5));
+  setCursor(x + 2, y + 1);
+  print(char(6));
+  setCursor(x + 3, y + 1);
+  print(char(7));
+}
+
+void Custom_LCD::setMotoBitmap() {
+  createChar(0, moto0);
+  createChar(1, moto1);
+  createChar(2, moto2);
+  createChar(3, moto3);
+  createChar(4, moto4);
+  createChar(5, moto5);
+  createChar(6, moto6);
+  createChar(7, moto7);
+}
+void Custom_LCD::setCarBitmap() {
+  createChar(0, car0);
+  createChar(1, car1);
+  createChar(2, car2);
+  createChar(3, car3);
+  createChar(4, car4);
+  createChar(5, car5);
+  createChar(6, car6);
+  createChar(7, car7);
 }
 
 void Custom_LCD::printScale_Welcome() {
   if (isStateChange()) {
     clear();
-    setCursor(0, 0);
-    print("CAN TU DONG");
+    String s = "De tai:";
+    int x = getCenterX(s.length());
+    setCursor(x, 1);
+    print(s);
+
+    s = "CAN TU DONG";
+    x = getCenterX(s.length());
+    setCursor(x, 2);
+    print(s);
   }
 }
 
 void Custom_LCD::printScale_Motobike(int weight) {
   if (isStateChange()) {
     clear();
-    setCursor(0, 0);
-    print("XE MAY");
-    setCursor(4, 2);
-    print("Kg");
+    String s = "XE MAY";
+    int x = getCenterX(s.length());
+    setCursor(x, 0);
+    print(s);
+
+    setMotoBitmap();
+    printBitmap(getCenterX(4), 2);
   }
-  setCursor(0, 2);
-  print(weight);
+  String s = String(weight) + " kg";
+  int x = getCenterX(s.length());
+  setCursor(x, 1);
+  print(s + "   ");
 }
 
 void Custom_LCD::printScale_Car(int weight) {
   if (isStateChange()) {
     clear();
-    setCursor(0, 0);
-    print("XE OTO");
-    setCursor(4, 2);
-    print("Kg");
+    String s = "OTO";
+    int x = getCenterX(s.length());
+    setCursor(x, 0);
+    print(s);
+
+    setCarBitmap();
+    printBitmap(getCenterX(4), 2);
   }
-  setCursor(0, 2);
-  print(weight);
+  String s = String(weight) + " kg";
+  int x = getCenterX(s.length());
+  setCursor(x, 1);
+  print(s + "   ");
 }
 
 void Custom_LCD::printScale_Overload(int weight) {
   if (isStateChange()) {
     clear();
-    setCursor(0, 0);
-    print("QUA TAI");
-    setCursor(4, 2);
-    print("Kg");
+    String s = "QUA TAI";
+    int x = getCenterX(s.length());
+    setCursor(x, 0);
+    print(s);
+
+    setCarBitmap();
+    printBitmap(getCenterX(4), 2);
   }
-  setCursor(0, 2);
-  print(weight);
+  String s = String(weight) + " kg";
+  int x = getCenterX(s.length());
+  setCursor(x, 1);
+  print(s + "   ");
 }
 
 void Custom_LCD::displayScale(int weight) {

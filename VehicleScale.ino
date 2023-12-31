@@ -6,33 +6,30 @@
 #include "Custom_HX711.h"
 #include "Custom_Keypad.h"
 
+#define G2KG 1;  // đổi tỉ lệ: 1g = 1kg
 
 Custom_LCD lcd(0x27, 20, 4);
 Custom_HX711 scale;
 Custom_Keypad keypad;
 Configuration configure;
 
-Mode_t mode = Mode_t::SCALE;
-int state = WELCOME;  // initialize state value
-
-void turnOnLed() {
+void turnLedOn() {
   digitalWrite(A0, HIGH);
-  delay(200);
-  digitalWrite(A0, LOW);
-  delay(200);
-  digitalWrite(A0, HIGH);
+  if (lcd.getDisplayState() == OVERLOAD) { // nếu quả tải nhấp nhấy led cảnh báo
+    delay(200);
+    digitalWrite(A0, LOW);
+    delay(200);
+    digitalWrite(A0, HIGH);
+  }
 }
 
-void turnOffLed() {
+void turnLedOff() {
   digitalWrite(A0, LOW);
 }
 
 void settingMode() {
-  mode = Mode_t::SETTING;
-  state = MOTOBIKE;
-
-  while (Mode_t::SETTING == mode) {
-    lcd.setDisplayState(state);
+  lcd.setDisplayState(MOTOBIKE);
+  while (true) {
     lcd.displaySetting();
 
     int weight = 0;
@@ -56,60 +53,51 @@ void settingMode() {
 
         Log.infoln("new weight = %d", weight);
       } else if (enteredKey == '#') {  // exist setting mode
-        mode = Mode_t::SCALE;
-        return;  // exit setting mode
+        return;
       }
     }
 
-    if (OVERLOAD == state
-        && '*' == enteredKey) {
-      mode = Mode_t::SCALE;
+    if (lcd.getDisplayState() == OVERLOAD && '*' == enteredKey) {
       return;  // exit setting mode
     }
 
     // Update weight thresholds
-    switch (state) {
+    switch (lcd.getDisplayState()) {
       case MOTOBIKE:
         if (weight > 0)
           configure.setMotoThreshold(weight);
-        state = CAR;
+        lcd.setDisplayState(CAR);
         break;
       case CAR:
         if (weight > 0)
           configure.setCarThreshold(weight);
-        state = OVERLOAD;
+        lcd.setDisplayState(OVERLOAD);
         break;
     }
   }
 }
 
 void scaleMode() {
-  int weight = scale.getWeight();
+  int weight = scale.getWeight() * G2KG;
   Log.infoln("Weight: %d", weight);
 
-  if (lcd.getDisplayState() != state) {
-    // LED controll
-    if (state != WELCOME && state != INIT) {
-      turnOnLed();
-    } else {
-      turnOffLed();
-    }
-    // LCD controll
-    lcd.clear();
-    lcd.setDisplayState(state);
+  if (weight > LOWER_THRESHOLD_MOTO) {
+    turnLedOn();
+  } else {
+    turnLedOff();
   }
 
   if (weight < LOWER_THRESHOLD_MOTO) {
-    state = WELCOME;
+    lcd.setDisplayState(WELCOME);
     lcd.printScale_Welcome();
   } else if (weight < configure.getMotoThreshold()) {
-    state = MOTOBIKE;
+    lcd.setDisplayState(MOTOBIKE);
     lcd.printScale_Motobike(weight);
   } else if (weight < configure.getCarThreshold()) {
-    state = CAR;
+    lcd.setDisplayState(CAR);
     lcd.printScale_Car(weight);
   } else {  // Overload
-    state = OVERLOAD;
+    lcd.setDisplayState(OVERLOAD);
     lcd.printScale_Overload(weight);
   }
 }
@@ -134,6 +122,8 @@ void setup() {
 
   pinMode(A0, OUTPUT);
   digitalWrite(A0, LOW);
+
+  // lcd.setDisplayState(WELCOME);
 
 #ifndef ENABLE_TEST  // release mode
 
