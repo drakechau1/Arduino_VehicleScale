@@ -25,6 +25,18 @@ bool Custom_LCD::isStateChange() {
   return true;
 }
 
+// void Custom_LCD::scrollMessage(int row, String message, int delayTime, int totalColumns) {
+//   for (int i = 0; i < totalColumns; i++) {
+//     message = " " + message;
+//   }
+//   message = message + " ";
+//   for (int position = 0; position < message.length(); position++) {
+//     setCursor(0, row);
+//     print(message.substring(position, position + totalColumns));
+//     delay(delayTime);
+//   }
+// }
+
 /**
 * Setters, Getters
 **/
@@ -87,7 +99,7 @@ void Custom_LCD::printSetting_Motobike() {
 
 void Custom_LCD::printSetting_Car() {
   setCursor(9, 0);
-  print("OTO (kg)");
+  print("Oto (kg)");
 
   setCursor(14, 2);
   print(configure.getMotoThreshold());
@@ -174,16 +186,37 @@ void Custom_LCD::setCarBitmap() {
 
 void Custom_LCD::printScale_Welcome() {
   if (isStateChange()) {
+    createChar(0, doubleExclamationMark);
+
+    uint8_t x = 0;
     clear();
-    String s = "De tai:";
-    int x = getCenterX(s.length());
-    setCursor(x, 1);
+    String s = "Doc Vinh Hy";
+    // x = getCenterX(s.length());
+    setCursor(0, 0);
     print(s);
 
-    s = "CAN TU DONG";
+    s = "Do nghieng 11%";
+    // x = getCenterX(s.length());
+    setCursor(0, 1);
+    print(s);
+
+    s = "Giam toc do";
     x = getCenterX(s.length());
     setCursor(x, 2);
     print(s);
+    setCursor(x - 2, 2);
+    print(char(0));
+    setCursor(x + s.length() + 1, 2);
+    print(char(0));
+
+    s = "Chu y quan sat";
+    x = getCenterX(s.length());
+    setCursor(x, 3);
+    print(s);
+    setCursor(x - 2, 3);
+    print(char(0));
+    setCursor(x + s.length() + 1, 3);
+    print(char(0));
   }
 }
 
@@ -191,7 +224,7 @@ void Custom_LCD::printScale_Motobike(int weight) {
   if (isStateChange()) {
     clear();
     String s = "XE MAY";
-    int x = getCenterX(s.length());
+    uint8_t x = getCenterX(s.length());
     setCursor(x, 0);
     print(s);
 
@@ -199,7 +232,7 @@ void Custom_LCD::printScale_Motobike(int weight) {
     printBitmap(getCenterX(4), 2);
   }
   String s = String(weight) + " kg";
-  int x = getCenterX(s.length());
+  uint8_t x = getCenterX(s.length());
   setCursor(x, 1);
   print(s + "   ");
 }
@@ -207,8 +240,8 @@ void Custom_LCD::printScale_Motobike(int weight) {
 void Custom_LCD::printScale_Car(int weight) {
   if (isStateChange()) {
     clear();
-    String s = "OTO";
-    int x = getCenterX(s.length());
+    String s = "XE OTO";
+    uint8_t x = getCenterX(s.length());
     setCursor(x, 0);
     print(s);
 
@@ -216,7 +249,7 @@ void Custom_LCD::printScale_Car(int weight) {
     printBitmap(getCenterX(4), 2);
   }
   String s = String(weight) + " kg";
-  int x = getCenterX(s.length());
+  uint8_t x = getCenterX(s.length());
   setCursor(x, 1);
   print(s + "   ");
 }
@@ -224,18 +257,18 @@ void Custom_LCD::printScale_Car(int weight) {
 void Custom_LCD::printScale_Overload(int weight) {
   if (isStateChange()) {
     clear();
-    String s = "QUA TAI";
-    int x = getCenterX(s.length());
+    String s = "X QUA TAI TRONG X";
+    uint8_t x = getCenterX(s.length());
     setCursor(x, 0);
     print(s);
 
     setCarBitmap();
     printBitmap(getCenterX(4), 2);
   }
-  String s = String(weight) + " kg";
-  int x = getCenterX(s.length());
+  String s = "X " + String(weight) + " kg X";
+  uint8_t x = getCenterX(s.length());
   setCursor(x, 1);
-  print(s + "   ");
+  print(s + "    ");
 }
 
 void Custom_LCD::displayScale(int weight) {

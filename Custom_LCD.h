@@ -17,7 +17,7 @@ public:
   void initLCD();
 
   bool isStateChange();
-
+  // void scrollMessage(int row, String message, int delayTime, int totalColumns);
   void displayScale(int weight);
   void displaySetting();
 

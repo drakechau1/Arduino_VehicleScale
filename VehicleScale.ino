@@ -1,4 +1,4 @@
-// #define DISABLE_LOGGING
+#define DISABLE_LOGGING
 // #define ENABLE_TEST
 #include "ArduinoLog.h"
 #include "Configuration.h"
@@ -16,9 +16,9 @@ Configuration configure;
 void turnLedOn() {
   digitalWrite(A0, HIGH);
   if (lcd.getDisplayState() == OVERLOAD) { // nếu quả tải nhấp nhấy led cảnh báo
-    delay(200);
+    delay(300);
     digitalWrite(A0, LOW);
-    delay(200);
+    delay(300);
     digitalWrite(A0, HIGH);
   }
 }
